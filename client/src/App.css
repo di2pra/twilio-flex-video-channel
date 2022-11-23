@@ -1,0 +1,30 @@
+.nav-link {
+  text-decoration: none;
+}
+
+.active {
+  text-decoration: none;
+  color: rgb(18, 28, 45) !important;
+  font-weight: 700;
+}
+
+.not-active {
+  color: rgb(18, 28, 45) !important;
+}
+
+.not-active:visited {
+  color: rgb(18, 28, 45) !important;
+}
+
+code {
+  color: rgb(242, 47, 70) !important;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
