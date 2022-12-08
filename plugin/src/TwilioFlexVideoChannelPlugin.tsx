@@ -42,6 +42,14 @@ export default class TwilioFlexVideoChannelPlugin extends FlexPlugin {
       main: 'Video'
     };
 
+    chatWithVideoChannel.templates = {
+      ...chatWithVideoChannel.templates,
+      TaskListItem: {
+        ...chatWithVideoChannel.templates?.TaskListItem,
+        secondLine: 'Incoming Video + Chat Request'
+      }
+    }
+
     chatWithVideoChannel.addedComponents = [
       {
         target: "CRMContainer",
