@@ -92,13 +92,6 @@ export default class TwilioFlexVideoChannelPlugin extends FlexPlugin {
 
     flex.TaskChannels.register(chatWithoutVideoChannel);
 
-
-    flex.CRMContainer.defaultProps.uriCallback = (task) => {
-      return (task && task.taskStatus === "assigned")
-        ? `https://form.jotform.com/223015264581046`
-        : 'https://eu.jotform.com/tables/223015264581046';
-    }
-
     flex.Supervisor.TaskCanvasHeader.Content.add(
       <VideoMonitor manager={manager} key="video-monitor" />,
       {
