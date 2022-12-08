@@ -19,7 +19,7 @@ const createConversation = async (client: TwilioClient, customerIdentity: string
 
 }
 
-const createInteraction: (client: TwilioClient, workspace: string, workflow: string, customerIdentity: string, partnerName: string, taskAttributes: object) => Promise<InteractionInstance> = async (client, workspace, workflow, customerIdentity, partnerName, taskAttributes) => {
+const createInteraction: (client: TwilioClient, workspace: string, workflow: string, customerIdentity: string, taskAttributes: object) => Promise<InteractionInstance> = async (client, workspace, workflow, customerIdentity, taskAttributes) => {
 
   const channel = await createConversation(client, customerIdentity);
 
@@ -38,8 +38,8 @@ const createInteraction: (client: TwilioClient, workspace: string, workflow: str
         task_channel_unique_name: 'chat',
         attributes: {
           ...taskAttributes,
-          name: `${partnerName} - Anonyme`,
-          customerName: 'Anonyme',
+          name: `Anonymous`,
+          customerName: 'Anonymous',
           channelType: 'web'
         }
       },
@@ -49,11 +49,6 @@ const createInteraction: (client: TwilioClient, workspace: string, workflow: str
 }
 
 type MyEvent = {
-  partner: {
-    id: string;
-    name: string;
-    numero: string;
-  };
   isWithVideo: boolean;
 }
 
@@ -87,9 +82,8 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async fu
 
     const customerIdentity = `customer`;
 
-    const interaction = await createInteraction(client, workspace, workflow, customerIdentity, event.partner.name, {
+    const interaction = await createInteraction(client, workspace, workflow, customerIdentity, {
       customerIdentity,
-      partner: event.partner,
       isWithVideo: event.isWithVideo
     });
 
@@ -115,10 +109,9 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async fu
       serviceSid: context.TWILIO_CONVERSATION_SERVICE_SID
     });
 
-
     token.addGrant(chatGrant);
 
-    response.setBody({ token: token.toJwt() });
+    response.setBody({ token: token.toJwt(), conversationSid: JSON.parse(interaction.routing.properties.attributes).conversationSid });
 
   } catch (err) {
 

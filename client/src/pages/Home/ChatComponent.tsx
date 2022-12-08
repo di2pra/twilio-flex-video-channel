@@ -6,15 +6,27 @@ import * as React from 'react';
 type Props = {
   identity: string;
   conversation: Conversation;
+  resetInteraction: () => void;
 }
 
-export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
+export const ChatComponent: React.FC<Props> = ({ identity, conversation, resetInteraction }) => {
 
   const [messageList, setMessageList] = React.useState<Message[]>([]);
   const [agentParticipant, setAgentParticipant] = React.useState<Participant>();
   const [messageToSend, setMessageToSend] = React.useState<string>('');
 
   const messageTextArea = React.useRef<HTMLTextAreaElement>(null);
+
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+
+  const scrollToBottom = React.useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, []);
+
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messageList, scrollToBottom])
 
   const keyUpHandler = React.useCallback((event) => {
     if (event.key === "Enter") {
@@ -61,7 +73,6 @@ export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
     })
 
     conversation.on('participantJoined', (participant) => {
-      console.log(participant);
       if (participant.identity !== 'customer') setAgentParticipant(participant)
     });
 
@@ -70,8 +81,8 @@ export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
     });
 
     conversation.on("removed", (conversation) => {
-
-    })
+      resetInteraction();
+    });
 
     return () => {
       conversation.removeAllListeners('messageAdded');
@@ -80,7 +91,7 @@ export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
       conversation.removeAllListeners('removed');
     }
 
-  }, [conversation]);
+  }, [conversation, resetInteraction]);
 
   const addMessage = React.useCallback((messageToSend) => {
     conversation.sendMessage(messageToSend);
@@ -94,10 +105,10 @@ export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
           {
             agentParticipant ? (
               <ChatEvent>
-                <strong>L'agent {process.env.REACT_APP_CUSTOMER_NAME} a rejoint le chat</strong>
+                <strong>The agent has joined the chat</strong>
               </ChatEvent>
             ) : <ChatEvent>
-              <strong>En attente d'un agent {process.env.REACT_APP_CUSTOMER_NAME} </strong>
+              <strong>Waiting the agent to join the chat</strong>
             </ChatEvent>
           }
           {
@@ -116,8 +127,8 @@ export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
                     variant === "inbound" ? (
                       <ChatMessageMeta aria-label={`agent ${process.env.REACT_APP_CUSTOMER_NAME} at 3:35 PM`}>
                         <ChatMessageMetaItem>
-                          <Avatar name={process.env.REACT_APP_CUSTOMER_NAME || ''} size="sizeIcon20" />
-                          Agent {process.env.REACT_APP_CUSTOMER_NAME} ・ {item.dateCreated?.toLocaleTimeString()}
+                          <Avatar name={"Agent"} size="sizeIcon20" />
+                          Agent ・ {item.dateCreated?.toLocaleTimeString()}
                         </ChatMessageMetaItem>
                       </ChatMessageMeta>
                     ) : (
@@ -130,13 +141,14 @@ export const ChatComponent: React.FC<Props> = ({ identity, conversation }) => {
               )
             })
           }
+          <div ref={messagesEndRef} />
         </ChatLog>
       </Box>
       <Box flexGrow={0}>
         <Label htmlFor="message" required>Message</Label>
         <TextArea ref={messageTextArea} value={messageToSend} onChange={(e) => { setMessageToSend(e.target.value) }} aria-describedby="message_help_text" id="message" name="message" required />
         <Box marginTop="space50" >
-          <Button onClick={() => { addMessage(messageToSend) }} disabled={messageToSend === ''} variant='primary'>Envoyer</Button>
+          <Button onClick={() => { addMessage(messageToSend) }} disabled={messageToSend === ''} variant='primary'>Send</Button>
         </Box>
       </Box>
     </Box>

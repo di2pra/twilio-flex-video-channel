@@ -13,3 +13,15 @@ export const parseJwt: (token: string) => object = (token: string) => {
   return JSON.parse(jsonPayload);
 
 }
+
+
+/**
+ * Remove all elements from the parent node by tag name.
+ * @constructor
+ * @param {HTMLElement | null} parentElement - The Parent Element.
+ * @param {string} tagName - The Tag Name.
+ */
+export const removeElementByTagName: (parentElement: HTMLElement | null, tagName: string) => void = (parentElement, tagName) => {
+  const elementList = parentElement?.getElementsByTagName(tagName);
+  if (elementList) while (elementList[0]) elementList[0].parentNode?.removeChild(elementList[0])
+}

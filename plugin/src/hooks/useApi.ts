@@ -53,67 +53,6 @@ const useApi = ({ token }: { token: string }) => {
 
   }, []);
 
-  const connectPartner: ({
-    number,
-    roomName,
-    partnerId
-  }: {
-    number: string;
-    roomName: string;
-    partnerId: string;
-  }) => Promise<object> = useCallback(async ({ number, roomName, partnerId }) => {
-
-    const result = await fetch(`${HOST}/connectPartner`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        Token: token,
-        number,
-        roomName,
-        partnerId
-      })
-    });
-
-    const data = await result.json();
-
-    if (result.ok) {
-      return data;
-    } else {
-      throw new Error("Error");
-    }
-
-  }, []);
-
-
-  const disconnectPartner: ({
-    roomName
-  }: {
-    roomName: string;
-  }) => Promise<object> = useCallback(async ({ roomName }) => {
-
-    const result = await fetch(`${HOST}/disconnectPartner`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        Token: token,
-        roomName
-      })
-    });
-
-    const data = await result.json();
-
-    if (result.ok) {
-      return data;
-    } else {
-      throw new Error("Error");
-    }
-
-  }, []);
-
   const getTaskList: () => Promise<IVideoTask[]> = useCallback(async () => {
 
     const result = await fetch(`${HOST}/taskList`, {
@@ -134,8 +73,6 @@ const useApi = ({ token }: { token: string }) => {
 
   return {
     getToken,
-    connectPartner,
-    disconnectPartner,
     getTaskList,
     getTokenSupervisor
   };

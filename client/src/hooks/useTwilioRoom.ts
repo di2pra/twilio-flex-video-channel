@@ -24,7 +24,15 @@ const useTwilioRoom = () => {
 
     setRoom(room);
 
-  }, [])
+  }, []);
+
+  const disconnectRoom = useCallback(async (room?: Room) => {
+    if (room) {
+      room.disconnect()
+      setRoom(undefined);
+    }
+  }, []);
+
 
   useEffect(() => {
 
@@ -141,6 +149,7 @@ const useTwilioRoom = () => {
   return {
     room,
     connectRoom,
+    disconnectRoom,
     customerParticipant,
     agentParticipant,
     agentTracks,

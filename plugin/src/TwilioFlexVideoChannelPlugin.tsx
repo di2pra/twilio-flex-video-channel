@@ -1,7 +1,6 @@
 import { CustomizationProvider } from '@twilio-paste/core/customization';
 import { FlexPlugin } from '@twilio/flex-plugin';
 import * as Flex from '@twilio/flex-ui';
-import AudioComponent from './components/AudioComponent';
 
 import VideoComponent from './components/VideoComponent';
 import VideoMonitor from './components/VideoMonitor';
@@ -24,12 +23,6 @@ export default class TwilioFlexVideoChannelPlugin extends FlexPlugin {
     flex.setProviders({
       PasteThemeProvider: CustomizationProvider
     });
-
-    flex.MainHeader
-      .defaultProps
-      .logoUrl = "https://www.sourdline.com/images/logo_sourdline.png";
-
-
 
     /* ==================
     Chat with Video Channel
@@ -74,21 +67,6 @@ export default class TwilioFlexVideoChannelPlugin extends FlexPlugin {
     =================== */
 
     const chatWithoutVideoChannel = flex.DefaultTaskChannels.createChatTaskChannel("chat-without-video", (task) => task.taskChannelUniqueName === "chat" && task.attributes.isWithVideo != undefined && task.attributes.isWithVideo === false);
-
-    chatWithoutVideoChannel.addedComponents = [
-      {
-        target: "CRMContainer",
-        component: <AudioComponent manager={manager} key="IncomingVideoComponent" />,
-        options: {
-          sortOrder: -1,
-          align: 'start',
-          if: (props: any) => {
-            return props.task.taskStatus === "assigned"
-          }
-        }
-      }
-    ];
-
 
     flex.TaskChannels.register(chatWithoutVideoChannel);
 
