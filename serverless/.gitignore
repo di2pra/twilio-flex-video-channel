@@ -1,5 +1,6 @@
 # Twilio Serverless
 .twiliodeployinfo
+.twiliodeployinfo.*
 
 # Logs
 logs
@@ -131,3 +132,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+
+.env.*
+!.env.sample

@@ -4,16 +4,17 @@ import { Context, ServerlessCallback, ServerlessFunctionSignature } from '@twili
 import { functionValidator as FunctionTokenValidator } from 'twilio-flex-token-validator';
 
 type MyEvent = {
-  Token: string;
-  roomName: string;
+  sid: string;
+  To: string;
 }
 
 type MyContext = {
-  ACCOUNT_SID: string;
-  AUTH_TOKEN: string;
-  TWILIO_API_KEY_SID: string;
-  TWILIO_API_KEY_SECRET: string;
-  TWILIO_CONVERSATION_SERVICE_SID: string;
+  TWILIO_WORKSPACE_SID: string;
+  TWILIO_FROM_NUMBER: string;
+  SERVICE_SID: string;
+  DOMAIN_NAME: string;
+  CUSTOM_DOMAIN_NAME: string;
+  CLIENT_APP_URL: string;
 }
 
 // @ts-ignore
@@ -31,32 +32,39 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = Function
 
   try {
 
-    if (!event.roomName) {
-      throw Error('Room Name Required')
-    }
+    const {
+      sid,
+      To
+    } = event;
 
     let client = context.getTwilioClient();
 
-    await client.video.v1.rooms(event.roomName)
-      .participants('partner')
-      .update({ status: 'disconnected' });
+    await client.messages.create({ body: `Hey, open the video chat here : https://${context.CLIENT_APP_URL}/video/${sid}`, from: context.TWILIO_FROM_NUMBER, to: To })
 
-    response.setBody({});
+    const task = await client.taskrouter.v1.workspaces(context.TWILIO_WORKSPACE_SID).tasks(sid).fetch();
 
-    return callback(null, response);
+    const attributes = JSON.parse(task.attributes);
+
+    await client.taskrouter.v1.workspaces(context.TWILIO_WORKSPACE_SID).tasks(sid).update({
+      attributes: JSON.stringify(
+        {
+          ...attributes,
+          isWithVideo: true
+        }
+      )
+    });
+
+    response.setBody(task);
 
   } catch (err) {
 
     if (err instanceof Error) {
-      response.setStatusCode(500);
-      response.setBody({ error: err.message })
+      response.setBody({ error: err.message });
     } else {
-      response.setStatusCode(500);
-      response.setBody({ error: 'Unknown Error' })
+      response.setBody({ error: 'Unknown Error' });
     }
 
+  } finally {
+    return callback(null, response);
   }
-
-
-  return callback(null, response);
 });

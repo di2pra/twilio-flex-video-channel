@@ -18,7 +18,6 @@ const useTwilioRoom = () => {
 
   const connectRoom = useCallback(async (token: string, name: string) => {
     const room = await Video.connect(token, {
-      automaticSubscription: false,
       name
     });
 

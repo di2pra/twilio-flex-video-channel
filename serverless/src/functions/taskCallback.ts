@@ -8,16 +8,11 @@ type MyEvent = {
 }
 
 type MyContext = {
-  ACCOUNT_SID: string;
-  AUTH_TOKEN: string;
-  TWILIO_API_KEY_SID: string;
-  TWILIO_API_KEY_SECRET: string;
-  TWILIO_CONVERSATION_SERVICE_SID: string;
 }
 
 // @ts-ignore
 export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async function (
-  context: Context<MyContext>,
+  _: Context<MyContext>,
   event: MyEvent,
   callback: ServerlessCallback
 ) {
@@ -32,11 +27,11 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async fu
 
     if (event.EventType === "task.wrapup") {
 
-      const roomName = event.TaskSid;
+      /*const roomName = event.TaskSid;
 
       let client = context.getTwilioClient();
 
-      await client.video.rooms(roomName).update({ status: 'completed' });
+      await client.video.rooms(roomName).update({ status: 'completed' });*/
 
     }
 

@@ -110,7 +110,7 @@ export const Home: React.FC = () => {
   if (isLoading) {
     return (
       <Box>
-        <Box marginTop='space100' justifyContent='center' alignItems='center'>
+        <Box display='flex' marginTop='space100' justifyContent='center' alignItems='center'>
           <Spinner decorative={false} title="Loading" size="sizeIcon80" />
         </Box>
       </Box>

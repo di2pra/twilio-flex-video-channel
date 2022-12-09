@@ -1,6 +1,7 @@
 import { CustomizationProvider } from '@twilio-paste/core/customization';
 import { FlexPlugin } from '@twilio/flex-plugin';
 import * as Flex from '@twilio/flex-ui';
+import BtnVideoComponent from './components/BtnVideoComponent';
 
 import VideoComponent from './components/VideoComponent';
 import VideoMonitor from './components/VideoMonitor';
@@ -25,30 +26,40 @@ export default class TwilioFlexVideoChannelPlugin extends FlexPlugin {
     });
 
     /* ==================
-    Chat with Video Channel
+    Voice with Video Channel
     =================== */
 
-    const chatWithVideoChannel = flex.DefaultTaskChannels.createChatTaskChannel("chat-with-video", (task) => task.taskChannelUniqueName === "chat" && task.attributes.isWithVideo != undefined && task.attributes.isWithVideo === true);
-    chatWithVideoChannel.icons = {
-      active: 'Video',
-      list: {
-        Assigned: 'Video',
-        Canceled: 'Video',
-        Completed: 'Video',
-        Pending: 'Video',
-        Reserved: 'Video',
-        Wrapping: 'Video'
-      },
-      main: 'Video'
-    };
+    const voiceWithVideoChannel = flex.DefaultTaskChannels.createCallTaskChannel("voice-with-video", (task) => task.taskChannelUniqueName === "voice" && task.attributes.isWithVideo != undefined && task.attributes.isWithVideo === true);
 
-    chatWithVideoChannel.addedComponents = [
+    voiceWithVideoChannel.addedComponents = [
       {
         target: "CRMContainer",
         component: <VideoComponent manager={manager} key="IncomingVideoComponent" />,
         options: {
           sortOrder: -1,
-          align: 'start',
+          align: 'start'
+        }
+      }
+    ];
+
+    flex.TaskChannels.register(voiceWithVideoChannel);
+
+    /* ==================
+    =================== */
+
+
+    /* ==================
+    Voice without Video Channel
+    =================== */
+
+    const voiceWithoutVideoChannel = flex.DefaultTaskChannels.createCallTaskChannel("voice-without-video", (task) => task.taskChannelUniqueName === "voice" && task.attributes.isWithVideo === undefined);
+
+    voiceWithoutVideoChannel.addedComponents = [
+      ...voiceWithoutVideoChannel.addedComponents || [],
+      {
+        target: "TaskCanvasHeader",
+        component: <BtnVideoComponent manager={manager} key="btnVideoComponent" />,
+        options: {
           if: (props: any) => {
             return props.task.taskStatus === "assigned"
           }
@@ -56,19 +67,11 @@ export default class TwilioFlexVideoChannelPlugin extends FlexPlugin {
       }
     ];
 
-    flex.TaskChannels.register(chatWithVideoChannel);
-
-    /* ==================
-    =================== */
+    flex.TaskChannels.register(voiceWithoutVideoChannel);
 
 
     /* ==================
-    Chat without Video Channel
     =================== */
-
-    const chatWithoutVideoChannel = flex.DefaultTaskChannels.createChatTaskChannel("chat-without-video", (task) => task.taskChannelUniqueName === "chat" && task.attributes.isWithVideo != undefined && task.attributes.isWithVideo === false);
-
-    flex.TaskChannels.register(chatWithoutVideoChannel);
 
     flex.Supervisor.TaskCanvasHeader.Content.add(
       <VideoMonitor manager={manager} key="video-monitor" />,

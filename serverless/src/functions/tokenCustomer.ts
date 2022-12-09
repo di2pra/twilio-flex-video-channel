@@ -1,11 +1,10 @@
 import '@twilio-labs/serverless-runtime-types';
 import { Context, ServerlessCallback, ServerlessFunctionSignature } from '@twilio-labs/serverless-runtime-types/types';
-import { jwt } from "twilio";
+import { jwt } from 'twilio';
 
-import { functionValidator as FunctionTokenValidator } from 'twilio-flex-token-validator';
 
 type MyEvent = {
-  Token: string;
+  sid: string;
 }
 
 type MyContext = {
@@ -14,8 +13,7 @@ type MyContext = {
   TWILIO_API_KEY_SECRET: string;
 }
 
-// @ts-ignore
-export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = FunctionTokenValidator(async function (
+export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async function (
   context: Context<MyContext>,
   event: MyEvent,
   callback: ServerlessCallback
@@ -29,9 +27,7 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = Function
 
   try {
 
-    const {
-      Token: FlexToken
-    } = event;
+    const customerIdentity = `customer`;
 
     const token = new jwt.AccessToken(
       context.ACCOUNT_SID,
@@ -39,9 +35,13 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = Function
       context.TWILIO_API_KEY_SECRET
     );
 
-    token.identity = `supervisor`;
+    token.identity = customerIdentity;
 
-    const videoGrant = new jwt.AccessToken.VideoGrant();
+    const roomName = event.sid;
+
+    const videoGrant = new jwt.AccessToken.VideoGrant({
+      room: roomName
+    });
 
     token.addGrant(videoGrant);
 
@@ -58,4 +58,6 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = Function
   } finally {
     return callback(null, response);
   }
-});
+
+
+};

@@ -9,12 +9,6 @@ type MyEvent = {
 }
 
 type MyContext = {
-  ACCOUNT_SID: string;
-  AUTH_TOKEN: string;
-  TWILIO_API_KEY_SID: string;
-  TWILIO_API_KEY_SECRET: string;
-  TWILIO_CONVERSATION_SERVICE_SID: string;
-  TWILIO_WORKSPACE_SID: string;
 }
 
 // @ts-ignore
@@ -40,37 +34,9 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async fu
         .subscribeRules.update({
           rules: [
             { "type": "include", "all": true },
-            { "type": "exclude", "publisher": "partner" },
             { "type": "exclude", "publisher": "supervisor" }
           ]
         })
-    }
-
-    if (event.StatusCallbackEvent === 'room-ended') {
-
-      /*const roomInsight = await client.insights.v1.rooms(event.RoomSid).fetch();
-      const roomInsightParticipant = await roomInsight.participants().list();
-
-      const metrics = {
-        conversation_measure_1: roomInsight.durationSec,
-        conversation_measure_2: roomInsightParticipant.find(item => item.participantIdentity === "customer")?.durationSec,
-        conversation_measure_3: roomInsightParticipant.filter(item => item.participantIdentity.includes('agent:')).map(item => item.durationSec).reduce(function (acc, val) { return acc + val; }, 0)
-      }
-
-      const task = await client.taskrouter.v1.workspaces(context.TWILIO_WORKSPACE_SID).tasks(event.RoomName).fetch();
-
-      const taskAttributes = JSON.parse(task.attributes);
-
-      await client.taskrouter.v1.workspaces(context.TWILIO_WORKSPACE_SID).tasks(event.RoomName).update({
-        attributes: JSON.stringify({
-          ...taskAttributes,
-          conversations: {
-            ...taskAttributes.conversations,
-            ...metrics
-          }
-        })
-      });*/
-
     }
 
     response.setBody({});

@@ -1,7 +1,6 @@
 import { useCallback } from "react";
-import { IVideoTask } from "../Types";
 
-const HOST = `https://twilio-serverless-video-channel-2436-dev.twil.io`;
+const HOST = `https://twilio-serverless-video-channel-7171-dev.twil.io`;
 
 const useApi = ({ token }: { token: string }) => {
 
@@ -53,12 +52,18 @@ const useApi = ({ token }: { token: string }) => {
 
   }, []);
 
-  const getTaskList: () => Promise<IVideoTask[]> = useCallback(async () => {
+  const sendVideoLink: (sid: string, to: string) => Promise<void> = useCallback(async (sid: string, to: string) => {
 
-    const result = await fetch(`${HOST}/taskList`, {
+    const result = await fetch(`${HOST}/sendVideoLink`, {
+      method: "POST",
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        Token: token,
+        sid: sid,
+        To: to
+      })
     });
 
     const data = await result.json();
@@ -73,8 +78,8 @@ const useApi = ({ token }: { token: string }) => {
 
   return {
     getToken,
-    getTaskList,
-    getTokenSupervisor
+    getTokenSupervisor,
+    sendVideoLink
   };
 }
 

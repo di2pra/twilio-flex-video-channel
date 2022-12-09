@@ -13,7 +13,6 @@ type MyContext = {
   AUTH_TOKEN: string;
   TWILIO_API_KEY_SID: string;
   TWILIO_API_KEY_SECRET: string;
-  TWILIO_CONVERSATION_SERVICE_SID: string;
 }
 
 // @ts-ignore

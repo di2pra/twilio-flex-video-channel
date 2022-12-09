@@ -1,4 +1,4 @@
-import { Box, Button, Heading, Modal, ModalBody, ModalHeader, ModalHeading, Stack, Text } from "@twilio-paste/core";
+import { Box, Button, Heading, Modal, ModalBody, ModalHeader, ModalHeading, Stack } from "@twilio-paste/core";
 import * as Flex from "@twilio/flex-ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { removeElementByTagName } from "../Helpers";
@@ -121,12 +121,12 @@ const VideoMonitor = ({ manager, ...props }: Props) => {
     return (
       <>
         <Box marginTop="space10" marginBottom="space40" display="flex" alignItems="center" justifyContent="center">
-          <Button onClick={handleOpen} variant="primary">Ecouter la conversation Vidéo</Button>
+          <Button onClick={handleOpen} variant="primary">Monitor the Video Call</Button>
         </Box>
         <Modal ariaLabelledby={modalHeadingID} isOpen={isOpen} onDismiss={handleClose} size="wide">
           <ModalHeader>
             <ModalHeading as="h3" id={modalHeadingID}>
-              Conversation Vidéo
+              Video Call
             </ModalHeading>
           </ModalHeader>
           <ModalBody>
@@ -134,18 +134,15 @@ const VideoMonitor = ({ manager, ...props }: Props) => {
               <Stack orientation="horizontal" spacing="space60">
                 <Box height="285px" width="380px" position="relative">
                   <Box textAlign="center" position="absolute" zIndex="zIndex10" height="100%" width="100%" display='flex' backgroundColor='colorBackgroundDestructiveWeakest' justifyContent='center' alignItems='center' >
-                    <Heading as="h6" variant="heading60">En attente de l'établissement de la connexion avec le client</Heading>
+                    <Heading as="h6" variant="heading60">Waiting to connect with the customer</Heading>
                   </Box>
                   <Box position="absolute" zIndex="zIndex20" height="100%" width="100%" display='none' id="customerMediaContainer" ref={customerMediaContainer}></Box>
                 </Box>
                 <Box height="285px" width="380px" position="relative">
                   <Box textAlign="center" position="absolute" zIndex="zIndex10" height="100%" width="100%" display='flex' backgroundColor='colorBackgroundDestructiveWeakest' justifyContent='center' alignItems='center' >
-                    <Heading as="h6" variant="heading60">En attente de l'établissement de la connexion avec l'agent</Heading>
+                    <Heading as="h6" variant="heading60">Waiting to connect with the agent</Heading>
                   </Box>
                   <Box position="absolute" zIndex="zIndex20" height="100%" width="100%" display='none' id="agentMediaContainer" ref={agentMediaContainer}></Box>
-                  <Box backgroundColor="colorBackgroundBrand" padding="space20" position="absolute" zIndex="zIndex30" bottom="10px" left="10px" right="10px" display='none' id="partnerAudioContainer" ref={partnerAudioContainer}>
-                    <Text color="colorTextBrandHighlight" textAlign="center" as="p">En communication avec le partenaire</Text>
-                  </Box>
                 </Box>
               </Stack>
             </Box>
