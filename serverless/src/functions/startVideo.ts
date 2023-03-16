@@ -13,7 +13,6 @@ type MyEvent = {
 
 type MyContext = {
   TWILIO_WORKSPACE_SID: string;
-  TWILIO_FROM_NUMBER: string;
   SERVICE_SID: string;
   DOMAIN_NAME: string;
   CLIENT_APP_URL: string;
@@ -38,25 +37,34 @@ export const handler: ServerlessFunctionSignature<MyContext, MyEvent> =
 
       let client = context.getTwilioClient();
 
-      await client.messages.create({
-        body: `Hey, open the video chat here : https://${context.CLIENT_APP_URL}/video/${sid}`,
-        from: context.TWILIO_FROM_NUMBER,
-        to: To,
-      });
-
       const task = await client.taskrouter.v1
         .workspaces(context.TWILIO_WORKSPACE_SID)
         .tasks(sid)
         .fetch();
 
-      const attributes = JSON.parse(task.attributes);
+      const taskAttributes = JSON.parse(task.attributes);
+
+      const conversation = await client.conversations
+        .conversations(taskAttributes.conversationSid)
+        .fetch();
+
+      const conversationAttributes = JSON.parse(conversation.attributes);
+
+      client.conversations
+        .conversations(taskAttributes.conversationSid)
+        .update({
+          attributes: JSON.stringify({
+            ...conversationAttributes,
+            room: task.sid,
+          }),
+        });
 
       await client.taskrouter.v1
         .workspaces(context.TWILIO_WORKSPACE_SID)
         .tasks(sid)
         .update({
           attributes: JSON.stringify({
-            ...attributes,
+            ...taskAttributes,
             isWithVideo: true,
           }),
         });

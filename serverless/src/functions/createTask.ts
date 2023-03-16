@@ -1,26 +1,40 @@
 import '@twilio-labs/serverless-runtime-types';
-import { Context, ServerlessCallback, ServerlessFunctionSignature } from '@twilio-labs/serverless-runtime-types/types';
+
 import { jwt, Twilio as TwilioClient } from 'twilio';
 import { InteractionInstance } from 'twilio/lib/rest/flexApi/v1/interaction';
 
-const createConversation = async (client: TwilioClient, customerIdentity: string) => {
+import {
+    Context, ServerlessCallback, ServerlessFunctionSignature
+} from '@twilio-labs/serverless-runtime-types/types';
 
+const createConversation = async (
+  client: TwilioClient,
+  customerIdentity: string
+) => {
   // Create Channel
   const channel = await client.conversations.conversations.create();
 
   // Add customer to channel
-  await client.conversations
-    .conversations(channel.sid)
-    .participants.create({
-      identity: customerIdentity
-    });
+  await client.conversations.conversations(channel.sid).participants.create({
+    identity: customerIdentity,
+  });
 
   return channel;
+};
 
-}
-
-const createInteraction: (client: TwilioClient, workspace: string, workflow: string, customerIdentity: string, taskAttributes: object) => Promise<InteractionInstance> = async (client, workspace, workflow, customerIdentity, taskAttributes) => {
-
+const createInteraction: (
+  client: TwilioClient,
+  workspace: string,
+  workflow: string,
+  customerIdentity: string,
+  taskAttributes: object
+) => Promise<InteractionInstance> = async (
+  client,
+  workspace,
+  workflow,
+  customerIdentity,
+  taskAttributes
+) => {
   const channel = await createConversation(client, customerIdentity);
 
   return await client.flexApi.v1.interaction.create({
@@ -28,29 +42,29 @@ const createInteraction: (client: TwilioClient, workspace: string, workflow: str
       type: "web",
       initiated_by: "customer",
       properties: {
-        media_channel_sid: channel.sid
-      }
+        media_channel_sid: channel.sid,
+      },
     },
     routing: {
       properties: {
         workspace_sid: workspace,
         workflow_sid: workflow,
-        task_channel_unique_name: 'chat',
+        task_channel_unique_name: "chat-with-video",
         attributes: {
           ...taskAttributes,
-          name: `Anonymous`,
-          customerName: 'Anonymous',
-          channelType: 'web'
-        }
+          channelType: "web",
+        },
       },
-    }
+    },
   });
-
-}
+};
 
 type MyEvent = {
   isWithVideo: boolean;
-}
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+};
 
 type MyContext = {
   TWILIO_VIDEO_WORKFLOW_SID: string;
@@ -59,71 +73,78 @@ type MyContext = {
   TWILIO_API_KEY_SID: string;
   TWILIO_API_KEY_SECRET: string;
   TWILIO_CONVERSATION_SERVICE_SID: string;
-}
+};
 
-export const handler: ServerlessFunctionSignature<MyContext, MyEvent> = async function (
-  context: Context<MyContext>,
-  event: MyEvent,
-  callback: ServerlessCallback
-) {
+export const handler: ServerlessFunctionSignature<MyContext, MyEvent> =
+  async function (
+    context: Context<MyContext>,
+    event: MyEvent,
+    callback: ServerlessCallback
+  ) {
+    const response = new Twilio.Response();
+    response.appendHeader("Access-Control-Allow-Origin", "*");
+    response.appendHeader("Access-Control-Allow-Methods", "OPTIONS POST");
+    response.appendHeader("Content-Type", "application/json");
+    response.appendHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  const response = new Twilio.Response();
-  response.appendHeader('Access-Control-Allow-Origin', '*');
-  response.appendHeader('Access-Control-Allow-Methods', 'OPTIONS POST');
-  response.appendHeader('Content-Type', 'application/json');
-  response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
+    try {
+      const workspace = context.TWILIO_WORKSPACE_SID;
+      const workflow = context.TWILIO_VIDEO_WORKFLOW_SID;
 
-  try {
+      let client = context.getTwilioClient();
 
-    const workspace = context.TWILIO_WORKSPACE_SID;
-    const workflow = context.TWILIO_VIDEO_WORKFLOW_SID;
+      const customerIdentity = `customer`;
 
-    let client = context.getTwilioClient();
+      const interaction = await createInteraction(
+        client,
+        workspace,
+        workflow,
+        customerIdentity,
+        {
+          customerIdentity,
+          name: `${event.firstName} ${event.lastName}`,
+          customerName: `${event.firstName} ${event.lastName}`,
+          phoneNumber: event.phoneNumber,
+          isWithVideo: event.isWithVideo,
+        }
+      );
 
-    const customerIdentity = `customer`;
+      const token = new jwt.AccessToken(
+        context.ACCOUNT_SID,
+        context.TWILIO_API_KEY_SID,
+        context.TWILIO_API_KEY_SECRET
+      );
 
-    const interaction = await createInteraction(client, workspace, workflow, customerIdentity, {
-      customerIdentity,
-      isWithVideo: event.isWithVideo
-    });
+      token.identity = customerIdentity;
 
-    const token = new jwt.AccessToken(
-      context.ACCOUNT_SID,
-      context.TWILIO_API_KEY_SID,
-      context.TWILIO_API_KEY_SECRET
-    );
+      if (event.isWithVideo) {
+        const roomName = interaction.routing.properties.sid;
 
-    token.identity = customerIdentity;
+        const videoGrant = new jwt.AccessToken.VideoGrant({
+          room: roomName,
+        });
 
-    if (event.isWithVideo) {
-      const roomName = interaction.routing.properties.sid;
+        token.addGrant(videoGrant);
+      }
 
-      const videoGrant = new jwt.AccessToken.VideoGrant({
-        room: roomName
+      const chatGrant = new jwt.AccessToken.ChatGrant({
+        serviceSid: context.TWILIO_CONVERSATION_SERVICE_SID,
       });
 
-      token.addGrant(videoGrant);
+      token.addGrant(chatGrant);
+
+      response.setBody({
+        token: token.toJwt(),
+        conversationSid: JSON.parse(interaction.routing.properties.attributes)
+          .conversationSid,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        response.setBody({ error: err.message });
+      } else {
+        response.setBody({ error: "Unknown Error" });
+      }
+    } finally {
+      return callback(null, response);
     }
-
-    const chatGrant = new jwt.AccessToken.ChatGrant({
-      serviceSid: context.TWILIO_CONVERSATION_SERVICE_SID
-    });
-
-    token.addGrant(chatGrant);
-
-    response.setBody({ token: token.toJwt(), conversationSid: JSON.parse(interaction.routing.properties.attributes).conversationSid });
-
-  } catch (err) {
-
-    if (err instanceof Error) {
-      response.setBody({ error: err.message });
-    } else {
-      response.setBody({ error: 'Unknown Error' });
-    }
-
-  } finally {
-    return callback(null, response);
-  }
-
-
-};
+  };
